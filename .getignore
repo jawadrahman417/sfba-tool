@@ -1,0 +1,15 @@
+# Ignore virtual environments
+myenv/
+env/
+venv/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore keys and sensitive data
+*.key
+
+# Ignore encrypted/decrypted files
+logs/
+restored_files/

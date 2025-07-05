@@ -1,0 +1,58 @@
+import os
+import hashlib
+from collections import defaultdict
+
+# Suspicious file extensions (used by malware)
+SUSPICIOUS_EXTENSIONS = ['.exe', '.vbs', '.bat', '.scr', '.js', '.dll']
+
+def analyze_folder(folder_path):
+    file_types = defaultdict(int)
+    duplicate_files = defaultdict(list)
+    suspicious_files = []
+
+    hash_set = {}
+
+    for root, _, files in os.walk(folder_path):
+        for filename in files:
+            file_path = os.path.join(root, filename)
+            ext = os.path.splitext(filename)[1].lower()
+            file_types[ext] += 1
+
+            # Check for suspicious extensions
+            if ext in SUSPICIOUS_EXTENSIONS:
+                suspicious_files.append(file_path)
+
+            # Check for duplicates using hash
+            file_hash = hash_file(file_path)
+            if file_hash in hash_set:
+                duplicate_files[file_hash].append(file_path)
+            else:
+                hash_set[file_hash] = file_path
+
+    return file_types, duplicate_files, suspicious_files
+
+def hash_file(path, chunk_size=4096):
+    hasher = hashlib.sha256()
+    try:
+        with open(path, 'rb') as f:
+            while chunk := f.read(chunk_size):
+                hasher.update(chunk)
+    except Exception as e:
+        print(f"[!] Failed to read {path}: {e}")
+    return hasher.hexdigest()
+
+def print_analysis(file_types, duplicate_files, suspicious_files):
+    print("\n📊 File Types:")
+    for ext, count in file_types.items():
+        print(f"{ext or '[no extension]'}: {count}")
+
+    print("\n🧬 Duplicate Files:")
+    for hash_val, paths in duplicate_files.items():
+        if len(paths) > 1:
+            print(f"\nHash: {hash_val}")
+            for p in paths:
+                print(f" - {p}")
+
+    print("\n🚩 Suspicious Files:")
+    for path in suspicious_files:
+        print(f" - {path}")
